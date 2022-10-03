@@ -1,0 +1,35 @@
+package com.example.rxjavasample
+
+import io.reactivex.rxjava3.core.Observable
+import io.reactivex.rxjava3.schedulers.Schedulers
+
+fun main(){
+    println("main start")
+
+    Observable.create{ emitter ->
+        val tokyoWeather = RestUtil.getWeather(RestUtil.Place.TOKYO)
+        emitter.onNext(tokyoWeather)
+
+        val yokohamaWeather = RestUtil.getWeather(RestUtil.Place.YOKOHAMA)
+        emitter.onNext(yokohamaWeather)
+
+        val nagoyaWeather = RestUtil.getWeather(RestUtil.Place.NAGOYA)
+        emitter.onNext(nagoyaWeather)
+
+        emitter.onComplete()
+    }.subscribeOn(Schedulers.io())
+        .observeOn(Schedulers.newThread())
+        .subscribe(
+        { weather ->
+            println("Next!")
+            println(weather)
+        },
+        { throwable ->
+            println("Error!")
+            throwable.printStackTrace()
+        },
+        { println("Complete!") }
+    )
+
+    println("main end")
+}
