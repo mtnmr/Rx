@@ -7,6 +7,8 @@ fun main(){
     println("main start")
 
     Observable.create{ emitter ->
+        println(Thread.currentThread().name)
+
         val tokyoWeather = RestUtil.getWeather(RestUtil.Place.TOKYO)
         emitter.onNext(tokyoWeather)
 
@@ -17,12 +19,14 @@ fun main(){
         emitter.onNext(nagoyaWeather)
 
         emitter.onComplete()
-    }.subscribeOn(Schedulers.io())
+    }
+        .subscribeOn(Schedulers.io())
         .observeOn(Schedulers.newThread())
         .subscribe(
         { weather ->
             println("Next!")
             println(weather)
+            println(Thread.currentThread().name)
         },
         { throwable ->
             println("Error!")
@@ -30,6 +34,8 @@ fun main(){
         },
         { println("Complete!") }
     )
+
+    Thread.sleep(5000)
 
     println("main end")
 }
