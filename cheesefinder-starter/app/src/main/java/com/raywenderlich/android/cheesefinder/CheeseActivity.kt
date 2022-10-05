@@ -30,9 +30,7 @@
 
 package com.raywenderlich.android.cheesefinder
 
-import androidx.annotation.MainThread
 import io.reactivex.Observable
-import io.reactivex.Single
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_cheeses.*
@@ -55,6 +53,7 @@ class CheeseActivity : BaseSearchActivity() {
         super.onStart()
 
         val searchTextObservable = createButtonClickObservable()
+        /*
         searchTextObservable
             .subscribe{ query ->
                 Single.fromCallable { cheeseSearchEngine.search(query) }
@@ -65,6 +64,16 @@ class CheeseActivity : BaseSearchActivity() {
                     }
         }
 
+         */
+
+        searchTextObservable
+            .subscribeOn(AndroidSchedulers.mainThread())
+            .observeOn(Schedulers.io())
+            .map { cheeseSearchEngine.search(it) ?: listOf() }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                showResult(it)
+            }
     }
 
 }
