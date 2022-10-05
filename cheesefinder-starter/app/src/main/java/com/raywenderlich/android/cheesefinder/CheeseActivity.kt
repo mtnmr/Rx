@@ -30,12 +30,42 @@
 
 package com.raywenderlich.android.cheesefinder
 
+import android.text.Editable
+import android.text.TextWatcher
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_cheeses.*
 
 class CheeseActivity : BaseSearchActivity() {
+
+    override fun onStart() {
+        super.onStart()
+
+        val searchTextObservable = createTextChangeObservable()
+        /*
+        searchTextObservable
+            .subscribe{ query ->
+                Single.fromCallable { cheeseSearchEngine.search(query) }
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe{ searchList ->
+                        showResult(searchList)
+                    }
+        }
+         */
+
+        searchTextObservable
+            .subscribeOn(AndroidSchedulers.mainThread())
+            .doOnNext{ showProgress() }
+            .observeOn(Schedulers.io())
+            .map { cheeseSearchEngine.search(it) ?: listOf() }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                hideProgress()
+                showResult(it)
+            }
+    }
 
     private fun createButtonClickObservable(): Observable<String> {
         return Observable.create { emitter ->
@@ -49,31 +79,27 @@ class CheeseActivity : BaseSearchActivity() {
         }
     }
 
-    override fun onStart() {
-        super.onStart()
+    private fun createTextChangeObservable():Observable<String>{
+        val textChangeObservable = Observable.create<String> {emitter ->
+            val textWatcher = object : TextWatcher{
+                override fun onTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                    s?.toString()?.let { emitter.onNext(it) }
+                }
 
-        val searchTextObservable = createButtonClickObservable()
-        /*
-        searchTextObservable
-            .subscribe{ query ->
-                Single.fromCallable { cheeseSearchEngine.search(query) }
-                    .subscribeOn(Schedulers.io())
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe{ searchList ->
-                        showResult(searchList)
-                    }
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) =
+                    Unit
+
+                override fun afterTextChanged(s: Editable?) = Unit
+            }
+
+            queryEditText.addTextChangedListener(textWatcher)
+
+            emitter.setCancellable {
+                queryEditText.removeTextChangedListener(textWatcher)
+            }
         }
 
-         */
-
-        searchTextObservable
-            .subscribeOn(AndroidSchedulers.mainThread())
-            .observeOn(Schedulers.io())
-            .map { cheeseSearchEngine.search(it) ?: listOf() }
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
-                showResult(it)
-            }
+        return textChangeObservable
     }
 
 }
