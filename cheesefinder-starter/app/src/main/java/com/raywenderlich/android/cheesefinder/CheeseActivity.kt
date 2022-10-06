@@ -36,11 +36,14 @@ import io.reactivex.BackpressureStrategy
 import io.reactivex.Flowable
 import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_cheeses.*
 import java.util.concurrent.TimeUnit
 
 class CheeseActivity : BaseSearchActivity() {
+
+    private lateinit var disposable : Disposable
 
     override fun onStart() {
         super.onStart()
@@ -62,7 +65,8 @@ class CheeseActivity : BaseSearchActivity() {
         }
          */
 
-        searchTextFlowable
+        disposable =
+            searchTextFlowable
             .observeOn(AndroidSchedulers.mainThread())
             .doOnNext{ showProgress() }
             .observeOn(Schedulers.io())
@@ -72,6 +76,13 @@ class CheeseActivity : BaseSearchActivity() {
                 hideProgress()
                 showResult(it)
             }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if(!disposable.isDisposed){
+            disposable.dispose()
+        }
     }
 
     private fun createButtonClickObservable(): Observable<String> {
