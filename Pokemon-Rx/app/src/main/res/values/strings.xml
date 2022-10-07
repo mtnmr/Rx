@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Pokemon</string>
+
+    <string name="search_hint">Number(1~898) or EnglishName</string>
+    <string name="poke_number">No.%1$s  %2$s</string>
+    <string name="sample_number">No.1 pokemon</string>
+    <string name="poke_weight">Weight : %1$s kg</string>
+    <string name="poke_height">Height : %1$s m</string>
+    <string name="poke_type">Type : %1$s</string>
+    <string name="back_button_text">Back</string>
+    <string name="next_button_text">Next</string>
+    <string name="gender_button_text">♂ ♀</string>
+    <string name="gender_front">Front</string>
+    <string name="gender_back">Back</string>
+</resources>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/pokeDetailFragment">
+
+    <fragment
+        android:id="@+id/pokeDetailFragment"
+        android:name="com.example.pokemon.ui.PokeDetailFragment"
+        android:label="PokemonSearch"
+        tools:layout="@layout/fragment_poke_detail" >
+        <action
+            android:id="@+id/action_pokeDetailFragment_to_genderImageFragment"
+            app:destination="@id/genderImageFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/genderImageFragment"
+        android:name="com.example.pokemon.ui.GenderImageFragment"
+        android:label="Pokemon Image"
+        tools:layout="@layout/fragment_gender_image" />
+</navigation>
