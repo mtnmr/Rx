@@ -15,16 +15,20 @@ import javax.inject.Inject
 @HiltViewModel
 class PokeViewModel @Inject constructor(private val repository: PokeRepository):ViewModel() {
 
-    val pokemon:PublishSubject<Pokemon> = PublishSubject.create()
-
-    fun getPoke(id:String){
-        repository.getPoke(id)
-            .subscribe{ poke ->
-                pokemon.onNext(poke)
-            }
-    }
+//    val pokemon:PublishSubject<Pokemon> = PublishSubject.create()
+//
+//    fun getPoke(id:String){
+//        repository.getPoke(id)
+//            .subscribe{ poke ->
+//                pokemon.onNext(poke)
+//            }
+//    }
 
 //    fun getPoke(id:String):Single<Pokemon>{
 //        return repository.getPoke(id)
 //    }
+
+    fun getPoke(id:String):Observable<Pokemon>{
+        return repository.getPoke(id)
+    }
 }

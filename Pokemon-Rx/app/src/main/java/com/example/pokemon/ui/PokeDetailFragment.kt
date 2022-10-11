@@ -35,9 +35,6 @@ class PokeDetailFragment : Fragment() {
     private var _binding:FragmentPokeDetailBinding ?= null
     private val binding get() = _binding!!
 
-//    private val viewModel:PokeViewModel by activityViewModels{
-//        PokeViewModelFactory((requireActivity().application as MyApplication).repository)
-//    }
     private val viewModel: PokeViewModel by activityViewModels()
 
     private lateinit var disposable : Disposable
@@ -54,13 +51,12 @@ class PokeDetailFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
 
+        /*
         binding.searchButton.setOnClickListener {
             hideKeyboard(it)
             val searchId = binding.searchPoke.text.toString()
             viewModel.getPoke(searchId)
         }
-
-
         viewModel.pokemon
             .observeOn(AndroidSchedulers.mainThread())
             .subscribeBy { pokemon ->
@@ -84,19 +80,39 @@ class PokeDetailFragment : Fragment() {
                 }
             }
 
+ */
 
+        val pokeIdObservable = createPokeIdObservable()
 
+        disposable = pokeIdObservable
+            .flatMap { viewModel.getPoke(it) }
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnError {
+                Log.d("doOnError", "getPoke error: ${it.message}")
+            }
+            .retry()
+            .subscribeBy(
+                onNext = {
+                    bindPokemon(it)
+                },
+                onError= {
+                    Log.d("pokemon", "getPoke error: ${it.message}")
+                }
+            )
 
-        /* 
-        val pokeIdObservable = Observable.create<String> {emitter ->
+        binding.genderButton.setOnClickListener {
+            val action =
+                PokeDetailFragmentDirections.actionPokeDetailFragmentToGenderImageFragment()
+            findNavController().navigate(action)
+        }
+    }
+
+    private fun createPokeIdObservable():Observable<String>{
+        val observable = Observable.create<String> {emitter ->
             binding.searchButton.setOnClickListener {
                 hideKeyboard(it)
                 val searchId = binding.searchPoke.text.toString()
                 emitter.onNext(searchId)
-            }
-
-            emitter.setCancellable {
-                binding.searchButton.setOnClickListener(null)
             }
 
             binding.backButton.setOnClickListener {
@@ -104,25 +120,10 @@ class PokeDetailFragment : Fragment() {
             }
 
             binding.nextButton.setOnClickListener {
-
             }
         }
 
-        disposable = pokeIdObservable
-            .map { viewModel.getPoke(it) }
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe{
-                bindPokemon()
-            }
-
-
-        binding.genderButton.setOnClickListener {
-            val action =
-                PokeDetailFragmentDirections.actionPokeDetailFragmentToGenderImageFragment()
-            findNavController().navigate(action)
-        }
-
-         */
+        return observable
     }
 
     private fun bindPokemon(pokemon: Pokemon){
@@ -140,10 +141,8 @@ class PokeDetailFragment : Fragment() {
             binding.genderButton.visibility = View.INVISIBLE
         }
 
-        if (pokemon != null) {
-            binding.backButton.visibility = View.VISIBLE
-            binding.nextButton.visibility = View.VISIBLE
-        }
+        binding.backButton.visibility = View.VISIBLE
+        binding.nextButton.visibility = View.VISIBLE
     }
 
     private fun hideKeyboard(view: View){
