@@ -50,7 +50,6 @@ class PokeDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-
         /*
         binding.searchButton.setOnClickListener {
             hideKeyboard(it)
@@ -79,24 +78,26 @@ class PokeDetailFragment : Fragment() {
                     binding.nextButton.visibility = View.VISIBLE
                 }
             }
-
  */
 
-        val pokeIdObservable = createPokeIdObservable()
+        val changeIdStream = createPokeIdObservable()
+        val backNextIdStream = createBackNextIdObservable()
+        val pokeIdObservable = Observable.merge(changeIdStream, backNextIdStream)
 
         disposable = pokeIdObservable
             .flatMap { viewModel.getPoke(it) }
             .observeOn(AndroidSchedulers.mainThread())
             .doOnError {
-                Log.d("doOnError", "getPoke error: ${it.message}")
+                Log.d("doOnError", "getPoke error: $it")
             }
             .retry()
             .subscribeBy(
                 onNext = {
+                    viewModel.changePokemon(it)
                     bindPokemon(it)
                 },
                 onError= {
-                    Log.d("pokemon", "getPoke error: ${it.message}")
+                    Log.d("pokemon", "getPoke error: $it")
                 }
             )
 
@@ -115,14 +116,30 @@ class PokeDetailFragment : Fragment() {
                 emitter.onNext(searchId)
             }
 
-            binding.backButton.setOnClickListener {
+            emitter.setCancellable {
+                binding.searchButton.setOnClickListener(null)
+            }
+        }
+        return observable
+    }
 
+    private fun createBackNextIdObservable():Observable<String>{
+        val observable = Observable.create<String> {emitter ->
+            binding.backButton.setOnClickListener {
+                val searchId = viewModel.backPokeId()
+                emitter.onNext(searchId)
             }
 
             binding.nextButton.setOnClickListener {
+                val searchId = viewModel.nextPokeId()
+                emitter.onNext(searchId)
+            }
+
+            emitter.setCancellable {
+                binding.nextButton.setOnClickListener(null)
+                binding.backButton.setOnClickListener(null)
             }
         }
-
         return observable
     }
 
